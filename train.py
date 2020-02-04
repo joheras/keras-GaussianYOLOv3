@@ -166,6 +166,7 @@ def create_generators(args):
             **common_args
         )
     elif args.dataset_type == 'pascalCustom':
+        from generators.pascal import PascalVocGenerator
         train_generator = PascalVocGenerator(
             args.pascal_path,
             'train',
