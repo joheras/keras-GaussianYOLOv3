@@ -119,6 +119,10 @@ def create_callbacks(training_model, prediction_model, validation_generator, arg
     return callbacks
 
 
+def read_classes(path):
+   classesLeidas = open(os.path.join(path, 'classes.csv')).readlines()
+   return {classLine.split(',')[0]:int(classLine.split(',')[1]) for classLine in classesLeidas}
+
 def create_generators(args):
     """
     Create generators for training and validation.
@@ -156,6 +160,28 @@ def create_generators(args):
         validation_generator = PascalVocGenerator(
             args.pascal_path,
             'val',
+            skip_difficult=True,
+            shuffle_groups=False,
+            anchors_path='voc_anchors_416.txt',
+            **common_args
+        )
+    elif args.dataset_type == 'pascalCustom':
+        train_generator = PascalVocGenerator(
+            args.pascal_path,
+            'train',
+            classes=read_classes(args.pascal_path),
+            skip_difficult=True,
+            misc_effect=misc_effect,
+            visual_effect=visual_effect,
+            anchors_path='voc_anchors_416.txt',
+            multi_scale=args.multi_scale,
+            **common_args
+        )
+
+        validation_generator = PascalVocGenerator(
+            args.pascal_path,
+            'test',
+            classes=read_classes(args.pascal_path),
             skip_difficult=True,
             shuffle_groups=False,
             anchors_path='voc_anchors_416.txt',
@@ -232,6 +258,9 @@ def parse_args(args):
 
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
+
+    pascalCustom_parser = subparsers.add_parser('pascalCustom')
+    pascalCustom_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
 
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations_path', help='Path to CSV file containing annotations for training.')
